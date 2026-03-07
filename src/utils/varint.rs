@@ -11,13 +11,14 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum VarIntError {
-    #[error("VarInt too large: {0}, max is 2^31-1")]
-    TooLarge(i32), // VarInt 太大了，超过2^31-1
+    #[error("VarInt too large, max is 2^31-1")]
+    TooLarge, // VarInt 太大了，超过2^31-1
     #[error("io error: {0}")]
     Io(#[from] std::io::Error), // IO错误强转用的
 }
 
 fn encode(mut value: i32, buf: &mut impl Write) -> Result<(), VarIntError> {
+    let mut value = value as u32; // 强转
     for _ in 0..5 { // mc应该未来也不会有varlong吧，默认varint 5个字节最大
         let mut byte = (value & 0x7F) as u8;
         value >>= 7;
@@ -29,7 +30,7 @@ fn encode(mut value: i32, buf: &mut impl Write) -> Result<(), VarIntError> {
             return Ok(());
         }
     }
-    Err(VarIntError::TooLarge(value))
+    Err(VarIntError::TooLarge)
 }
 
 pub fn decode(reader: &mut impl Read) -> Result<i32, VarIntError> {
@@ -48,7 +49,7 @@ pub fn decode(reader: &mut impl Read) -> Result<i32, VarIntError> {
         // 如果最高位是0，说明这是最后一个字节
         if (byte & 0x80) == 0 {
             if result > i32::MAX as u32 {
-                return Err(VarIntError::TooLarge(result as i32));
+                return Err(VarIntError::TooLarge);
             }
             return Ok(result as i32);
         }
@@ -56,23 +57,23 @@ pub fn decode(reader: &mut impl Read) -> Result<i32, VarIntError> {
         shift += 7;
 
         if bytes_read == 5 {
-            return Err(VarIntError::TooLarge(result as i32));
+            return Err(VarIntError::TooLarge);
         }
     }
 }
 
-// 测试
+// 测试 cargo test -- --nocapture
 #[cfg(test)]
 mod tests {
     use rand::RngExt;
     use super::*;
 
     #[test]
-    fn test_encode_speed() {
+    fn test_encode() {
         println!("Encode varint test started");
         let mut rng = rand::rng();
         let mut buf = Vec::new();
-        let iterations = 1_000_000; // 一百万次
+        let iterations = 10_000_000; // 一千万次
 
         let start = std::time::Instant::now();
 
