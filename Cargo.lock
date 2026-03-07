@@ -141,6 +141,8 @@ dependencies = [
 [[package]]
 name = "mcproto-derive"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71bb6512e95f0374c4f9f53c19fe9451cb390936a8528859cd64c89fa8ef21e0"
 dependencies = [
  "proc-macro2",
  "quote",

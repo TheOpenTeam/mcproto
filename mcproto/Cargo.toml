@@ -11,4 +11,4 @@ default = []
 [dependencies]
 thiserror = "2.0.18"
 rand = "0.10.0"
-mcproto-derive = { path = "../mcproto-derive", optional = false } # 宏包
+mcproto-derive = "0.1.0" # 宏包
