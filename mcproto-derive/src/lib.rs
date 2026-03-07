@@ -8,6 +8,8 @@
  */
 
 use proc_macro::{Ident, TokenStream};
+use thiserror::Error;
+
 
 // serverbound packet derive
 #[proc_macro_derive(ServerboundPacket, attributes(packet))]
@@ -32,21 +34,22 @@ pub fn serverbound_packet_derive(input: TokenStream) -> TokenStream {
         let names: Vec<_> = data.fields.iter().map(|f| &f.ident).collect();
         let types: Vec<_> = data.fields.iter().map(|f| &f.ty).collect();
         let expanded = quote::quote! {
-                impl ServerboundPacket for #struct_name {
-                    fn packet_id() -> i32 {
+                impl ::mcproto::packet::ServerboundPacket for #struct_name {
+                    fn packet_id(&self) -> i32 {
                         #id
                     }
-                    fn encode(&self, buf: &mut impl std::io::Write) -> Result<(), crate::Error> {
+                    fn encode(&self, buf: &mut impl std::io::Write) -> Result<(), ::mcproto::CodecError> {
                         #(
-                            self.#names.encode(buf)?;
+                            <#types as ::mcproto::PacketCodec>::encode(&self.#names, buf)?;
                         )*
                         Ok(())
                     }
-                    fn decode(buf: &mut impl std::io::Read) -> Result<Self, crate::Error> {
+                    fn decode(buf: &mut impl std::io::Read) -> Result<Self, ::mcproto::CodecError> {
+                        Ok(Self {
                         #(
-                            self.#names.decode(buf)?;
+                            #names: <#types as ::mcproto::PacketCodec>::decode(buf)?,
                         )*
-                        Ok(())
+                        })
                     }
                 }
             };

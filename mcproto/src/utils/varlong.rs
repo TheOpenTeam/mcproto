@@ -7,17 +7,10 @@
  *
  */
 use std::io::{Read, Write};
-use thiserror::Error;
+use crate::CodecError;
 
-#[derive(Error, Debug)]
-pub enum VarLongError {
-    #[error("VarLong too large, max is 2^63-1")]
-    TooLarge, // 和varint一样的，懒得写
-    #[error("io error: {0}")]
-    Io(#[from] std::io::Error), // IO错误强转用的
-}
 #[inline]
-pub fn encode(mut value: i64, buf: &mut impl Write) -> Result<(), VarLongError> {
+pub fn encode(mut value: i64, buf: &mut impl Write) -> Result<(), CodecError> {
     let mut value = value as u64;
     for _ in 0..10 {
         let mut byte = (value & 0x7F) as u8;
@@ -30,11 +23,11 @@ pub fn encode(mut value: i64, buf: &mut impl Write) -> Result<(), VarLongError> 
             return Ok(());
         }
     }
-    Err(VarLongError::TooLarge)
+    Err(CodecError::VarTooLarge)
 }
 
 #[inline]
-pub fn decode(reader: &mut impl Read) -> Result<i64, VarLongError> {
+pub fn decode(reader: &mut impl Read) -> Result<i64, CodecError> {
     let mut result = 0u64;
     let mut shift = 0;
 
@@ -52,7 +45,7 @@ pub fn decode(reader: &mut impl Read) -> Result<i64, VarLongError> {
 
         shift += 7;
     }
-    Err(VarLongError::TooLarge)
+    Err(CodecError::VarTooLarge)
 }
 #[cfg(test)]
 mod tests {

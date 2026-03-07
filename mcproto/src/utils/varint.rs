@@ -7,17 +7,10 @@
  *
  */
 use std::io::{Read, Write};
-use thiserror::Error;
+use crate::CodecError;
 
-#[derive(Error, Debug)]
-pub enum VarIntError {
-    #[error("VarInt too large, max is 2^31-1")]
-    TooLarge, // VarInt 太大了，超过2^31-1
-    #[error("io error: {0}")]
-    Io(#[from] std::io::Error), // IO错误强转用的
-}
 #[inline]
-pub fn encode(mut value: i32, buf: &mut impl Write) -> Result<(), VarIntError> {
+pub fn encode(mut value: i32, buf: &mut impl Write) -> Result<(), CodecError> {
     let mut value = value as u32; // 强转
     for i in 0..5 {
         let byte = (value & 0x7F) as u8;
@@ -31,10 +24,10 @@ pub fn encode(mut value: i32, buf: &mut impl Write) -> Result<(), VarIntError> {
             return Ok(());
         }
     }
-    Err(VarIntError::TooLarge)
+    Err(CodecError::VarTooLarge)
 }
 #[inline]
-pub fn decode(reader: &mut impl Read) -> Result<i32, VarIntError> {
+pub fn decode(reader: &mut impl Read) -> Result<i32, CodecError> {
     let mut result = 0u32;
     let mut shift = 0;
 
@@ -52,7 +45,7 @@ pub fn decode(reader: &mut impl Read) -> Result<i32, VarIntError> {
 
         shift += 7;
     }
-    Err(VarIntError::TooLarge)
+    Err(CodecError::VarTooLarge)
 }
 // 测试 cargo test test_encode --release -- --nocapture
 #[cfg(test)]
