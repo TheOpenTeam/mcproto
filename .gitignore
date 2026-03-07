@@ -1,7 +1,7 @@
 
 /target
 **/*.rs.bk
-Cargo.lock
+mcproto/Cargo.lock
 
 # IDE
 .idea/
