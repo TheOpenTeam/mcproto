@@ -8,16 +8,32 @@
  */
 #[cfg(test)]
 mod tests;
+
+use std::io::Cursor;
+use mcproto::packet::ServerboundPacket;
 use mcproto_derive::ServerboundPacket;
 
 #[test]
-fn create_struct() {
-    #[derive(ServerboundPacket)]
+fn serverbound_packet_test() {
+    #[derive(ServerboundPacket, Debug)]
     #[packet(id = 0x00)]
     struct Test {
         a: i32,
         b: String,
         c: i64
     }
+    println!("Successfully create a serverbound packet struct");
+    let test = Test {
+        a: 1,
+        b: "test".to_string(),
+        c: 2
+    };
+    let mut buf = Vec::new();
+    test.encode(&mut buf).expect("Failed to encode packet");
+    dbg!(&buf);
+    Test::decode(&mut Cursor::new(buf)).expect("Failed to decode packet");
+    dbg!(&test);
+    println!("Passed the test including encode and decode packet.");
+
 }
 
