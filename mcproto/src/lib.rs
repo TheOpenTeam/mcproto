@@ -73,3 +73,105 @@ impl PacketCodec for bool {
         }
     }
 }
+// u8和i8完全一样,大端序，但是只有1个字节就明文
+impl PacketCodec for u8 {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        buf.write_all(&[*self])?;
+        Ok(())
+    }
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let mut byte = [0u8; 1];
+        buf.read_exact(&mut byte)?;
+        Ok(byte[0])
+    }
+}
+impl PacketCodec for i8 {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        buf.write_all(&[*self as u8])?;
+        Ok(())
+    }
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let mut byte = [0u8; 1];
+        buf.read_exact(&mut byte)?;
+        Ok(byte[0] as i8)
+    }
+}
+// i16和u16是端口的大端序
+impl PacketCodec for u16 {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        buf.write_all(&self.to_be_bytes())?;
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let mut bytes = [0u8; 2];
+        buf.read_exact(&mut bytes)?;
+        Ok(u16::from_be_bytes(bytes))
+    }
+}
+
+impl PacketCodec for i16 {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        buf.write_all(&self.to_be_bytes())?;
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let mut bytes = [0u8; 2];
+        buf.read_exact(&mut bytes)?;
+        Ok(i16::from_be_bytes(bytes))
+    }
+}
+
+impl PacketCodec for u32 {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        buf.write_all(&self.to_be_bytes())?;
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let mut bytes = [0u8; 4];
+        buf.read_exact(&mut bytes)?;
+        Ok(u32::from_be_bytes(bytes))
+    }
+}
+
+
+impl PacketCodec for u64 {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        buf.write_all(&self.to_be_bytes())?;
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let mut bytes = [0u8; 8];
+        buf.read_exact(&mut bytes)?;
+        Ok(u64::from_be_bytes(bytes))
+    }
+}
+impl PacketCodec for f32 {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        buf.write_all(&self.to_bits().to_be_bytes())?;
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let mut bytes = [0u8; 4];
+        buf.read_exact(&mut bytes)?;
+        Ok(f32::from_bits(u32::from_be_bytes(bytes)))
+    }
+}
+
+impl PacketCodec for f64 {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        buf.write_all(&self.to_bits().to_be_bytes())?;
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let mut bytes = [0u8; 8];
+        buf.read_exact(&mut bytes)?;
+        Ok(f64::from_bits(u64::from_be_bytes(bytes)))
+    }
+}
+
