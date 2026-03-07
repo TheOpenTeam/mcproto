@@ -1,0 +1,5 @@
+title: mcproto Docs
+description: mcproto的文档
+baseurl: "/mcproto"  # 改成你的仓库名称
+markdown: kramdown
+theme: jekyll-theme-hacker
