@@ -10,7 +10,7 @@ use std::io::{Read, Write};
 use crate::CodecError;
 
 #[inline]
-pub fn encode(mut value: i32, buf: &mut impl Write) -> Result<(), CodecError> {
+pub fn encode(value: i32, buf: &mut impl Write) -> Result<(), CodecError> {
     let mut value = value as u32; // 强转
     for i in 0..5 {
         let byte = (value & 0x7F) as u8;

@@ -7,8 +7,7 @@
  *
  */
 
-use proc_macro::{Ident, TokenStream};
-use thiserror::Error;
+use proc_macro::TokenStream;
 
 
 // serverbound packet derive
