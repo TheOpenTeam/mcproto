@@ -3,3 +3,4 @@ description: mcproto的文档
 baseurl: "/mcproto"  # 改成你的仓库名称
 markdown: kramdown
 theme: jekyll-theme-hacker
+remote_theme: pages-themes/cayman
