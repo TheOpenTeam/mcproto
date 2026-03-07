@@ -18,15 +18,17 @@ fn serverbound_packet_test() {
     #[derive(ServerboundPacket, Debug)]
     #[packet(id = 0x00)]
     struct Test {
-        a: i32,
-        b: String,
-        c: i64
+        a: i32, // VarInt
+        b: String, //Var Int + String
+        c: i64, // VarLong
+        d: bool // Bool
     }
     println!("Successfully create a serverbound packet struct");
     let test = Test {
         a: 1,
         b: "test".to_string(),
-        c: 2
+        c: 2,
+        d: true
     };
     let mut buf = Vec::new();
     test.encode(&mut buf).expect("Failed to encode packet");

@@ -28,7 +28,8 @@ pub trait PacketCodec: Sized { // 给基础类型都实现encode和decode
 }
 impl PacketCodec for i32 {
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
-        Ok(varint::encode(*self, buf)?)
+        varint::encode(*self, buf)?;
+        Ok(())
     }
     fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
         Ok(varint::decode(buf)?)
@@ -54,5 +55,21 @@ impl PacketCodec for String {
         let mut bytes = vec![0u8; len];
         buf.read_exact(&mut bytes)?;
         String::from_utf8(bytes).map_err(|_| CodecError::DecodeError)
+    }
+}
+impl PacketCodec for bool {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        // true = 0x01, false = 0x00
+        buf.write_all(&[*self as u8])?;
+        Ok(())
+    }
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let mut byte = [0u8; 1];
+        buf.read_exact(&mut byte)?;
+        match byte[0] {
+            0 => Ok(false),
+            1 => Ok(true),
+            _ => Err(CodecError::DecodeError),
+        }
     }
 }
