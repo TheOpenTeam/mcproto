@@ -19,15 +19,11 @@ pub fn serverbound_packet_derive(input: TokenStream) -> TokenStream {
         .find(|attr| attr.path().is_ident("packet"))
         .and_then(|attr| {
             let mut id = None;
-            let _ = attr.parse_nested_meta(|meta| {
+            let _: syn::Result<()> = attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("id") {
-                    if let Ok(value) = meta.value() {
-                        if let Ok(lit) = value.parse::<syn::LitInt>() {
-                            if let Ok(num) = lit.base10_parse::<i32>() {
-                                id = Some(num);
-                            }
-                        }
-                    }
+                    let value = meta.value()?;
+                    let lit: syn::LitInt = value.parse()?;
+                    id = Some(lit.base10_parse::<i32>()?);
                 }
                 Ok(())
             });

@@ -1,6 +1,0 @@
-title: mcproto Docs
-description: mcproto的文档
-baseurl: "/mcproto"
-markdown: kramdown
-theme: jekyll-theme-cayman
-remote_theme: pages-themes/cayman
