@@ -1,6 +1,6 @@
 [package]
 name = "mcproto-http"
-version = "0.1.2"
+version = "0.1.3"
 description = "Minecraft protocol library, http (including auth) features"
 license = "MIT"
 edition = "2024"
