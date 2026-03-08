@@ -5,6 +5,12 @@ description = "Minecraft protocol librar"
 license = "MIT"
 edition = "2024"
 repository = "https://github.com/TheOpenTeam/mcproto"
+[features]
+default = []
 
+network = ["dep:mcproto-network"]
 [dependencies]
+mcproto-derive = "0.1.0"
+mcproto-utils = "0.1.0" #两个必装
+
 
