@@ -10,7 +10,7 @@
 #[cfg(test)]
 mod tests {
     use rand::RngExt;
-    use mcproto::utils::{varint, varlong};
+    use crate::utils::{varint, varlong};
 
     #[test]
     fn test_encode() {

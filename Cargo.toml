@@ -1,2 +1,2 @@
 [workspace]
-members = ["mcproto", "mcproto-derive"]
+members = ["mcproto-utils", "mcproto-derive", "mcproto"]

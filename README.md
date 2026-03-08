@@ -5,7 +5,7 @@
 #### 安装
 在你的`项目根目录`中使用以下命令：  
 ```bash
-cargo add mcproto
+cargo add mcproto-utils
 ```
 或者在`Cargo.toml`中手动添加：
 ```toml

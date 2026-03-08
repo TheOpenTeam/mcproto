@@ -1,7 +1,7 @@
 
 /target
 **/*.rs.bk
-mcproto/Cargo.lock
+mcproto-utils/Cargo.lock
 ./Cargo.lock
 *.lock
 
