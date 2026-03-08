@@ -25,6 +25,7 @@ mod tests {
             ushort: u16, // Unsigned Short
             float: f32, // Float
             double: f64, // Double
+            array: Vec<u8> // array
 
         }
         println!("Successfully create a serverbound packet struct");
@@ -39,6 +40,7 @@ mod tests {
             ushort: 65535,
             float: 1.23456789f32,
             double: 1.1145141919354836f64,
+            array: vec![1, 2, 3, 4, 5]
         };
         let mut buf = Vec::new();
         test.encode(&mut buf);

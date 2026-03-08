@@ -201,4 +201,43 @@ impl PacketCodec for Uuid {
         Uuid::from_slice(&bytes).map_err(|_| CodecError::DecodeError)
     }
 }
+// prefixed array
+impl PacketCodec for Vec<u8> {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        (self.len() as i32).encode(buf)?;
+        buf.write_all(self)?;
+        Ok(())
+    }
 
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let len = i32::decode(buf)? as usize;
+        let mut data = vec![0u8; len];
+        buf.read_exact(&mut data)?;
+        Ok(data)
+    }
+}
+// Prefixed Optional str
+impl PacketCodec for Option<String> {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        if let Some(s) = self {
+            (s.len() as i32).encode(buf)?;
+            buf.write_all(s.as_bytes())?;
+            Ok(())
+        } else {
+            (-1_i32).encode(buf)?;
+            Ok(())
+        }
+    }
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let len = i32::decode(buf)?;
+        if len == -1 {
+            Ok(None)
+        } else {
+            let mut bytes = vec![0u8; len as usize];
+            buf.read_exact(&mut bytes)?;
+            String::from_utf8(bytes)
+                .map(Some)
+                .map_err(|_| CodecError::DecodeError)
+        }
+    }
+}
