@@ -42,7 +42,7 @@ mod tests {
             double: 1.1145141919354836f64,
         };
         let mut buf = Vec::new();
-        test.encode(&mut buf).expect("Failed to encode packet");
+        test.encode(&mut buf);
         dbg!(&buf);
         dbg!(&test);
         println!("Passed the test including encode and decode packet.");
