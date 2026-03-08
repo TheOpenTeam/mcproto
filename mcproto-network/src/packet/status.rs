@@ -6,9 +6,38 @@
  *  * Copyright (c) 2026 The Open Team. All rights reserved.
  *
  */
-use mcproto_utils::ServerboundPacketTrait;
-use mcproto_derive::ServerboundPacket;
+use rand::RngExt;
+use mcproto_utils::{ServerboundPacketTrait, ClientboundPacketTrait};
+use mcproto_derive::{ClientboundPacket, ServerboundPacket};
 
+// 按照正常登录流程排序
+// todo: 老SLP（1.6前）
 #[derive(ServerboundPacket)]
 #[packet(id = 0x00)]
 pub struct StatusRequest; // 空的
+
+#[derive(ClientboundPacket)]
+#[packet(id = 0x00)]
+pub struct StatusResponse {
+    pub json_response: String
+}
+#[derive(ServerboundPacket)]
+#[packet(id = 0x01)]
+pub struct PingRequest {
+    pub payload: i64,
+}
+impl PingRequest {
+    pub fn new() -> Self {
+        let mut rng = rand::rng();
+        PingRequest {
+            payload: rng.random()
+        }
+    }
+}
+
+#[derive(ClientboundPacket)]
+#[packet(id = 0x01)]
+pub struct PongResponse {
+    pub payload: i64,
+}
+

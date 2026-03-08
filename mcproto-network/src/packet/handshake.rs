@@ -16,6 +16,7 @@ pub enum NextState {
     // 下一个状态 1 = status， 2 = login
     Status = 1,
     Login = 2,
+    Transfer = 3,
 }
 impl PacketCodec for NextState {
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
@@ -26,6 +27,7 @@ impl PacketCodec for NextState {
         match value {
             1 => Ok(NextState::Status),
             2 => Ok(NextState::Login),
+            3 => Ok(NextState::Transfer),
             _ => Err(CodecError::InvalidEnumValue {enum_name: "NextState", value, expected: "1 or 2"}),
         }
     }

@@ -1,7 +1,7 @@
 [package]
 name = "mcproto"
 version = "0.1.2"
-description = "Minecraft protocol librar"
+description = "Minecraft protocol library"
 license = "MIT"
 edition = "2024"
 repository = "https://github.com/TheOpenTeam/mcproto"
@@ -9,9 +9,11 @@ repository = "https://github.com/TheOpenTeam/mcproto"
 default = []
 
 network = ["dep:mcproto-network"]
+http = ["dep:mcproto-http"]
 [dependencies]
-mcproto-derive = {path = "../mcproto-derive"}
-mcproto-utils = {path = "../mcproto-utils"} #两个必装
-mcproto-network = {path = "../mcproto-network", optional = true}
+mcproto-derive = {path = "../mcproto-derive", version = "0.1.2"}
+mcproto-utils = {path = "../mcproto-utils", version = "0.1.2"} #两个必装
+mcproto-network = {path = "../mcproto-network", optional = true, version = "0.1.2"}
+mcproto-http = {path = "../mcproto-http", optional = true, version = "0.1.2"}
 
 

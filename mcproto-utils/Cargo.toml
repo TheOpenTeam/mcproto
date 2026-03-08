@@ -9,3 +9,4 @@ repository = "https://github.com/TheOpenTeam/mcproto"
 [dependencies]
 thiserror = "2.0.18"
 rand = "0.10.0"
+uuid = "1.22.0"

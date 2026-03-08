@@ -8,6 +8,8 @@
  */
 use std::io::{Read, Write};
 use thiserror::Error;
+use uuid::Uuid;
+
 pub mod utils;
 use crate::utils::{varint, varlong};
 pub trait ServerboundPacketTrait {
@@ -185,6 +187,18 @@ impl PacketCodec for f64 {
         let mut bytes = [0u8; 8];
         buf.read_exact(&mut bytes)?;
         Ok(f64::from_bits(u64::from_be_bytes(bytes)))
+    }
+}
+
+impl PacketCodec for Uuid {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        buf.write_all(self.as_bytes())?;
+        Ok(())
+    }
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let mut bytes = [0u8; 16];
+        buf.read_exact(&mut bytes)?;
+        Uuid::from_slice(&bytes).map_err(|_| CodecError::DecodeError)
     }
 }
 
