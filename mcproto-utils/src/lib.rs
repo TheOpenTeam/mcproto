@@ -220,8 +220,8 @@ impl PacketCodec for Vec<u8> {
 impl PacketCodec for Option<String> {
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
         if let Some(s) = self {
-            (s.len() as i32).encode(buf)?;
-            buf.write_all(s.as_bytes())?;
+            true.encode(buf);
+            s.encode(buf)?;
             Ok(())
         } else {
             (-1_i32).encode(buf)?;
@@ -229,15 +229,33 @@ impl PacketCodec for Option<String> {
         }
     }
     fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
-        let len = i32::decode(buf)?;
-        if len == -1 {
-            Ok(None)
+        if bool::decode(buf)? {  // 读标志位
+            Ok(Some(String::decode(buf)?))
         } else {
-            let mut bytes = vec![0u8; len as usize];
-            buf.read_exact(&mut bytes)?;
-            String::from_utf8(bytes)
-                .map(Some)
-                .map_err(|_| CodecError::DecodeError)
+            Ok(None)
+        }
+    }
+}
+// Prefixed Optional Prefixed array of bytes
+impl PacketCodec for Option<Vec<u8>> {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        match self {
+            Some(bytes) => {
+                true.encode(buf)?;      // 有内容，写 true
+                bytes.encode(buf)?;      // 内层 Vec<u8> 自己处理长度
+            }
+            None => {
+                false.encode(buf)?;      // 无内容，只写 false
+            }
+        }
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        if bool::decode(buf)? {          // 读标志位
+            Ok(Some(Vec::<u8>::decode(buf)?))  // 有内容就读 Vec<u8>
+        } else {
+            Ok(None)                     // 没内容直接返回 None
         }
     }
 }

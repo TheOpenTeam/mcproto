@@ -107,3 +107,19 @@ pub struct LoginSuccess {
 #[packet(id = 0x03)]
 pub struct LoginAcknowledged; //空包
 
+#[derive(ClientboundPacket)]
+#[packet(id = 0x03)]
+pub struct SetCompression {
+    threshold: i32,
+}
+#[derive(ClientboundPacket)]
+#[packet(id = 0x05)]
+pub struct CookieRequest {
+    pub key: String
+}
+#[derive(ServerboundPacket)]
+#[packet(id = 0x05)]
+pub struct CookieResponse {
+    pub key: String,
+    pub value: Option<Vec<u8>>
+}
