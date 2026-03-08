@@ -15,28 +15,28 @@ use uuid::Uuid;
 #[derive(ServerboundPacket)]
 #[packet(id = 0x00)]
 pub struct LoginStart {
-    name: String,
-    uuid: Uuid,
+    pub name: String,
+    pub uuid: Uuid,
 }
 #[derive(ClientboundPacket)]
 #[packet(id = 0x00)]
 pub struct Disconnect {
-    reason_json : String,
+    pub reason_json : String,
 }
 #[derive(ClientboundPacket)]
 #[packet(id = 0x01)]
 pub struct EncryptionRequest {
-    server_id: String, // 通常空的
-    public_key: Vec<u8>,
-    verify_token: Vec<u8>,
-    should_authenticate: bool,
+    pub server_id: String, // 通常空的
+    pub public_key: Vec<u8>,
+    pub verify_token: Vec<u8>,
+    pub should_authenticate: bool,
 
 }
 #[derive(ServerboundPacket)]
 #[packet(id = 0x01)]
 pub struct EncryptionResponse {
-    shared_secret: Vec<u8>,
-    verify_token: Vec<u8>,
+    pub shared_secret: Vec<u8>,
+    pub verify_token: Vec<u8>,
 }
 
 impl EncryptionResponse {
@@ -98,9 +98,9 @@ impl PacketCodec for PropertyList { // PrefixedArray
 #[derive(ClientboundPacket)]
 #[packet(id = 0x02)]
 pub struct LoginSuccess {
-    uuid: Uuid,
-    username: String,
-    properties: PropertyList,
+    pub uuid: Uuid,
+    pub username: String,
+    pub properties: PropertyList,
 }
 // todo LoginPluginResponse
 #[derive(ServerboundPacket)]
@@ -110,7 +110,7 @@ pub struct LoginAcknowledged; //空包
 #[derive(ClientboundPacket)]
 #[packet(id = 0x03)]
 pub struct SetCompression {
-    threshold: i32,
+    pub threshold: i32,
 }
 #[derive(ClientboundPacket)]
 #[packet(id = 0x05)]

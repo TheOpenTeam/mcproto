@@ -8,6 +8,6 @@ repository = "https://github.com/TheOpenTeam/mcproto"
 
 [dependencies]
 rand = "0.10.0"
-mcproto-derive = { path = "../mcproto-derive", version = "0.1.2"}
-mcproto-utils = { path = "../mcproto-utils", version = "0.1.2" }
+mcproto-derive = { path = "../mcproto-derive", version = "0.1.3"}
+mcproto-utils = { path = "../mcproto-utils", version = "0.1.3" }
 uuid = { version = "1.22.0", features = ["v4"] }

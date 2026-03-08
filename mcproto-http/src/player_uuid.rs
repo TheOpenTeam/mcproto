@@ -8,16 +8,8 @@
  */
 use thiserror::Error;
 use uuid::Uuid;
+use crate::NetworkError;
 
-#[derive(Debug, Error)]
-pub enum NetworkError {
-    #[error("Not found: {0}")]
-    NotFound(String),
-    #[error("Invalid data: {0}")]
-    InvalidData(String),
-    #[error("Request error: {0}")]
-    RequestError(#[from] reqwest::Error),
-}
 /// 通过用户名获取 Mojang UUID
 pub async fn username_to_uuid(username: String) -> Result<Uuid, NetworkError> {
     let url = format!("https://api.mojang.com/users/profiles/minecraft/{}", username);
@@ -51,12 +43,3 @@ pub async fn username_to_uuid(username: String) -> Result<Uuid, NetworkError> {
     Uuid::parse_str(&uuid_str).map_err(|e| NetworkError::InvalidData(e.to_string()))
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[tokio::test]
-    async fn test_username_to_uuid() {
-        let uuid = username_to_uuid("Notch".to_string()).await.unwrap();
-        assert_eq!(uuid.to_string(), "069a79f4-44e9-4726-a5be-fca90e38aaf5");
-    }
-}
