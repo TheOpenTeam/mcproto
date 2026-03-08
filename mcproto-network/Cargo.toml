@@ -1,6 +1,6 @@
 [package]
 name = "mcproto-network"
-version = "0.1.0"
+version = "0.1.1"
 description = "Minecraft protocol library network feature"
 license = "MIT"
 edition = "2024"

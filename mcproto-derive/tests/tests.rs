@@ -45,7 +45,7 @@ mod tests {
         test.encode(&mut buf);
         dbg!(&buf);
         dbg!(&test);
-        println!("Passed the test including encode and decode packet.");
+        println!("Passed the test including encode packet.");
 
     }
 }

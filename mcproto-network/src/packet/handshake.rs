@@ -9,8 +9,7 @@
 
 use std::io::{Read, Write};
 use mcproto_derive::ServerboundPacket;
-use crate::{CodecError, PacketCodec};
-use crate::packet::ServerboundPacket as _;
+use mcproto_utils::{CodecError, PacketCodec};
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum NextState {
     // 下一个状态 1 = status， 2 = login

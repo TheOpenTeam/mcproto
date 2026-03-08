@@ -34,7 +34,7 @@ pub fn serverbound_packet_derive(input: TokenStream) -> TokenStream {
         let types: Vec<_> = data.fields.iter().map(|f| &f.ty).collect();
 
         let expanded = quote::quote! {
-            impl ServerboundPacket for #struct_name {
+            impl ServerboundPacketTrait for #struct_name {
                 fn packet_id(&self) -> i32 {
                     #id
                 }
@@ -78,7 +78,7 @@ pub fn clientbound_packet_derive(input: TokenStream) -> TokenStream {
         let types: Vec<_> = data.fields.iter().map(|f| &f.ty).collect();
 
         let expanded = quote::quote! {
-            impl ServerboundPacket for #struct_name {
+            impl ClientboundPacketTrait for #struct_name {
                 fn packet_id(&self) -> i32 {
                     #id
                 }

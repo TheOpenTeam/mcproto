@@ -10,11 +10,11 @@ use std::io::{Read, Write};
 use thiserror::Error;
 use utils::{varint, varlong};
 pub mod utils;
-pub trait ServerboundPacket {
+pub trait ServerboundPacketTrait {
     fn packet_id(&self) -> i32;
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError>;
 }
-pub trait ClientboundPacket {
+pub trait ClientboundPacketTrait {
     fn packet_id(&self) -> i32;
     fn decode(buf: &mut impl Read) -> Result<Self, CodecError> where Self: Sized;
 }
