@@ -53,7 +53,7 @@ pub fn serverbound_packet_derive(input: TokenStream) -> TokenStream {
     }
 }
 #[proc_macro_derive(ClientboundPacket, attributes(packet))]
-pub fn serverbound_packet_derive(input: TokenStream) -> TokenStream {
+pub fn clientbound_packet_derive(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);
 
     // 解析 packet id
