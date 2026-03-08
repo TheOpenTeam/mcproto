@@ -9,9 +9,8 @@
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
-    use mcproto_utils::packet::ServerboundPacket;
+    use mcproto_utils::*;
     use mcproto_derive::ServerboundPacket;
-
     #[test]
     fn serverbound_packet_test() {
         #[derive(ServerboundPacket, Debug)]

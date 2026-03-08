@@ -12,3 +12,4 @@ path = "src/lib.rs"
 [dependencies]
 syn = { version = "2.0", features = ["derive", "parsing", "extra-traits"] }
 quote = "1.0"
+mcproto-utils = "0.1.0"

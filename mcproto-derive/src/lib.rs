@@ -7,7 +7,7 @@
  *
  */
 use proc_macro::TokenStream;
-
+use mcproto_utils::ServerboundPacket;
 #[proc_macro_derive(ServerboundPacket, attributes(packet))]
 pub fn serverbound_packet_derive(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);
@@ -34,20 +34,20 @@ pub fn serverbound_packet_derive(input: TokenStream) -> TokenStream {
         let types: Vec<_> = data.fields.iter().map(|f| &f.ty).collect();
 
         let expanded = quote::quote! {
-            impl ::mcproto::packet::ServerboundPacket for #struct_name {
+            impl ServerboundPacket for #struct_name {
                 fn packet_id(&self) -> i32 {
                     #id
                 }
-                fn encode(&self, buf: &mut impl std::io::Write) -> Result<(), ::mcproto::CodecError> {
+                fn encode(&self, buf: &mut impl std::io::Write) -> Result<(), mcproto_utils::CodecError> {
                     #(
-                        <#types as ::mcproto::PacketCodec>::encode(&self.#names, buf)?;
+                        <#types as mcproto_utils::PacketCodec>::encode(&self.#names, buf)?;
                     )*
                     Ok(())
                 }
-                fn decode(buf: &mut impl std::io::Read) -> Result<Self, ::mcproto::CodecError> {
+                fn decode(buf: &mut impl std::io::Read) -> Result<Self, mcproto_utils::CodecError> {
                     Ok(Self {
                         #(
-                            #names: <#types as ::mcproto::PacketCodec>::decode(buf)?,
+                            #names: <#types as mcproto_utils::PacketCodec>::decode(buf)?,
                         )*
                     })
                 }

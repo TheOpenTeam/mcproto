@@ -7,5 +7,4 @@ edition = "2024"
 repository = "https://github.com/TheOpenTeam/mcproto"
 
 [dependencies]
-thiserror = "2.0.18"
-rand = "0.10.0"
+
