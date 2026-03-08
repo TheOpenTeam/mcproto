@@ -1,5 +1,5 @@
 ## mcproto
-[官方文档](https://theopenteam.github.io/mcproto/)    
+[官方文档](https://theopenteam.github.io/doc/#/mcproto)    
 
 ### 使用
 #### 安装
