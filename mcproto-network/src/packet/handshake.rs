@@ -7,6 +7,7 @@
  *
  */
 
+use mcproto_utils::ServerboundPacketTrait;
 use std::io::{Read, Write};
 use mcproto_derive::ServerboundPacket;
 use mcproto_utils::{CodecError, PacketCodec};

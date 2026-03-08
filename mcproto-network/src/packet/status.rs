@@ -6,8 +6,9 @@
  *  * Copyright (c) 2026 The Open Team. All rights reserved.
  *
  */
+use mcproto_utils::ServerboundPacketTrait;
 use mcproto_derive::ServerboundPacket;
 
 #[derive(ServerboundPacket)]
-#[packet(id: 0x00)]
-pub struct StatusRequest;
+#[packet(id = 0x00)]
+pub struct StatusRequest; // 空的

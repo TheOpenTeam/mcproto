@@ -8,8 +8,8 @@
  */
 use std::io::{Read, Write};
 use thiserror::Error;
-use utils::{varint, varlong};
 pub mod utils;
+use crate::utils::{varint, varlong};
 pub trait ServerboundPacketTrait {
     fn packet_id(&self) -> i32;
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError>;

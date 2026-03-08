@@ -7,7 +7,7 @@
  *
  */
 use proc_macro::TokenStream;
-use mcproto_utils::ServerboundPacket;
+
 #[proc_macro_derive(ServerboundPacket, attributes(packet))]
 pub fn serverbound_packet_derive(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);

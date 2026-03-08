@@ -1,6 +1,6 @@
 [package]
 name = "mcproto-network"
-version = "0.1.1"
+version = "0.1.0"
 description = "Minecraft protocol library network feature"
 license = "MIT"
 edition = "2024"
@@ -8,5 +8,5 @@ repository = "https://github.com/TheOpenTeam/mcproto"
 
 [dependencies]
 thiserror = "2.0.18"
-mcproto-derive = "0.1.0"
-mcproto-utils = "0.1.0"
+mcproto-derive = { path = "../mcproto-derive" }
+mcproto-utils = { path = "../mcproto-utils" }

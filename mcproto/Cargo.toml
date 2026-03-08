@@ -10,8 +10,8 @@ default = []
 
 network = ["dep:mcproto-network"]
 [dependencies]
-mcproto-derive = "0.1.1"
-mcproto-utils = "0.1.1" #两个必装
-mcproto-network = { version = "0.1.1", optional = true}
+mcproto-derive = {path = "../mcproto-derive"}
+mcproto-utils = {path = "../mcproto-utils"} #两个必装
+mcproto-network = {path = "../mcproto-network", optional = true}
 
 
