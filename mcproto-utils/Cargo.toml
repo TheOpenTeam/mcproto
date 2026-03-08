@@ -1,6 +1,6 @@
 [package]
 name = "mcproto-utils"
-version = "0.1.0"
+version = "0.1.1"
 description = "Minecraft protocol crate utils for mcproto"
 license = "MIT"
 edition = "2024"

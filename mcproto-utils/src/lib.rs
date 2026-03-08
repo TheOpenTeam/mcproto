@@ -13,6 +13,9 @@ pub mod utils;
 pub trait ServerboundPacket {
     fn packet_id(&self) -> i32;
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError>;
+}
+pub trait ClientboundPacket {
+    fn packet_id(&self) -> i32;
     fn decode(buf: &mut impl Read) -> Result<Self, CodecError> where Self: Sized;
 }
 #[derive(Debug, Error)]
