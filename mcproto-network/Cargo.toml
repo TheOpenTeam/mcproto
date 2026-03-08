@@ -8,4 +8,5 @@ repository = "https://github.com/TheOpenTeam/mcproto"
 
 [dependencies]
 thiserror = "2.0.18"
-rand = "0.10.0"
+mcproto-derive = "0.1.0"
+mcproto-utils = "0.1.0"
