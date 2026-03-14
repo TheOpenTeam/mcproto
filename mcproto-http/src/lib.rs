@@ -22,4 +22,5 @@ pub enum NetworkError {
     TimeoutError,
     #[error("Other error: {0}")]
     Other(String),
+
 }

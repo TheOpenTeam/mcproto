@@ -8,6 +8,7 @@
  */
 use thiserror::Error;
 use uuid::Uuid;
+use log::error;
 use crate::NetworkError;
 
 /// 通过用户名获取 Mojang UUID
@@ -20,6 +21,7 @@ pub async fn username_to_uuid(username: String) -> Result<Uuid, NetworkError> {
         .map_err(|e| NetworkError::RequestError(e))?;
 
     if response.status() == 404 {
+        error!("Cannot find the user {} from mojang session api.", &username);
         return Err(NetworkError::NotFound(username));
     }
 

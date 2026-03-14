@@ -1,3 +1,4 @@
+use log::warn;
 use serde::Deserialize;
 use crate::NetworkError;
 use reqwest::Client;
@@ -25,14 +26,13 @@ pub struct ErrorResponse {
     pub trace_id: Option<String>,
     pub correlation_id: Option<String>,
 }
-pub async fn get_device_response() -> Result<DeviceCodeData, NetworkError> {
+pub async fn get_device_response(client: &Client) -> Result<DeviceCodeData, NetworkError> {
     // 获取设备码
     let url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode";
     let params = [
         ("client_id", CLIENT_ID),
         ("scope", "XboxLive.signin offline_access"),
     ];
-    let client = Client::new();
     let response = client
         .post(url)
         .form(&params)
@@ -41,14 +41,13 @@ pub async fn get_device_response() -> Result<DeviceCodeData, NetworkError> {
     let data = response.json::<DeviceCodeData>().await?;
     Ok(data)
 }
-pub async fn get_token(data: DeviceCodeData) -> Result<TokenData, NetworkError> {
+pub async fn get_token(client: &Client, data: DeviceCodeData) -> Result<TokenData, NetworkError> {
     let url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
     let params = [
         ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
         ("client_id", CLIENT_ID),
         ("device_code", &data.device_code),
     ];
-    let client = Client::new();
     let mut interval = data.interval as u64;
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(interval)).await;
@@ -66,7 +65,7 @@ pub async fn get_token(data: DeviceCodeData) -> Result<TokenData, NetworkError> 
                 "authorization_pending" => continue,
                 "slow_down" => interval += 5,
                 "expired_token" => {
-                    println!("Token expired, please try again.");
+                    warn!("Token expired, please try again.");
                     break Err(NetworkError::TimeoutError);
                 }
                 _ => {
