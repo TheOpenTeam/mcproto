@@ -28,7 +28,7 @@ impl PacketCodec for ChatMode {
             0 => Ok(ChatMode::Enabled),
             1 => Ok(ChatMode::CommandsOnly),
             2 => Ok(ChatMode::Hidden),
-            _ => Err(CodecError::InvalidEnumValue {enum_name: "Chat Mode", value, expected: "0, 1 or 2"}),
+            _ => Err(CodecError::InvalidEnumValue {enum_name: "Chat Mode", value, expected: "0..2"}),
         }
     }
 }
@@ -46,7 +46,7 @@ impl PacketCodec for MainHand {
         match value {
             0 => Ok(MainHand::Left),
             1 => Ok(MainHand::Right),
-            _ => Err(CodecError::InvalidEnumValue {enum_name: "Main Hand", value, expected: "0 or 1"}),
+            _ => Err(CodecError::InvalidEnumValue {enum_name: "Main Hand", value, expected: "0..1"}),
         }
     }
 }
@@ -66,7 +66,7 @@ impl PacketCodec for ParticleStatus {
             0 => Ok(ParticleStatus::All),
             1 => Ok(ParticleStatus::Decreased),
             2 => Ok(ParticleStatus::Minimal),
-            _ => Err(CodecError::InvalidEnumValue {enum_name: "Particle Status", value, expected: "0, 1 or 2"}),
+            _ => Err(CodecError::InvalidEnumValue {enum_name: "Particle Status", value, expected: "0..2"}),
         }
     }
 }
@@ -598,7 +598,7 @@ impl PacketCodec for ResourcePackResult {
             _ => Err(CodecError::InvalidEnumValue {
                 enum_name: "ResourcePackResult",
                 value,
-                expected: "0, 1, 2 or 3",
+                expected: "0..3",
             }),
         }
     }

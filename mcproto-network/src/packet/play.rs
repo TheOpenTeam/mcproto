@@ -4,7 +4,11 @@ use mcproto_derive::{ClientboundPacket, ServerboundPacket};
 use mcproto_utils::{ClientboundPacketTrait, CodecError, Identifier, Int, Long, PacketCodec, ServerboundPacketTrait};
 use uuid::Uuid;
 
+use crate::packet::TextComponent;
+
 pub mod bossbar;
+pub mod container;
+pub mod block;
 #[derive(Debug, Clone, Copy, PartialEq)]
 // 实现基本类型
 // 角度 mc中角度是 真实1度 = 1*256/360 度存储
@@ -137,7 +141,7 @@ impl PacketCodec for EntityAnimationType {
             _ => Err(CodecError::InvalidEnumValue {
                 enum_name: "EntityAnimationType",
                 value: value as i32,
-                expected: "0, 2, 3, 4 or 5",
+                expected: "0..5",
             }),
         }
     }
@@ -218,7 +222,7 @@ impl PacketCodec for StatisticCategory {
             _ => Err(CodecError::InvalidEnumValue {
                 enum_name: "StatisticCategory",
                 value,
-                expected: "0-8",
+                expected: "0..8",
             }),
         }
     }
@@ -230,115 +234,215 @@ pub struct AwardStatistics {
     pub statistics: Statistics
 }
 
-#[derive(ClientboundPacket)]
-#[packet(id = 0x04)]
-pub struct AcknowledgeBlockChange {
-    pub sequence_id: i32,
-}
 
-#[derive(ClientboundPacket)]
-#[packet(id = 0x05)]
-pub struct SetBlockDestroyStage {
-    pub entity_id: i32,
-    pub location: Position,
-    pub destroy_stage: u8
-}
-
-#[derive(ClientboundPacket)]
-#[packet(id = 0x06)]
-pub struct BlockEntityData {
-    pub location: Position,
-    pub r#type: BlockEntityType, // 关键字
-    pub nbt_data: Vec<u8>,
-}
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum BlockEntityType {
-    MobSpawner = 0,
-    CommandBlock = 1,
-    Beacon = 2,
-    Skull = 3,
-    Conduit = 4,
-    Banner = 5,
-    StructureBlock = 6,
-    EndGateway = 7,
-    Sign = 8,
-    HangingSign = 9,
-    Bed = 10,
-    Jigsaw = 11,
-    Campfire = 12,
-    Beehive = 13,
-    SculkSensor = 14,
-    CalibratedSculkSensor = 15,
-    SculkCatalyst = 16,
-    SculkShrieker = 17,
-    DecoratedPot = 18,
-    Crafter = 19,
+pub enum Difficulty {
+    Peaceful = 0,
+    Easy = 1,
+    Normal = 2,
+    Hard = 3,
 }
-impl PacketCodec for BlockEntityType {
+
+impl PacketCodec for Difficulty {
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
-        (*self as i32).encode(buf)
+        (*self as u8).encode(buf)
     }
 
     fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
-        let value = i32::decode(buf)?;
-
-        match value {
-            0 => Ok(BlockEntityType::MobSpawner),
-            1 => Ok(BlockEntityType::CommandBlock),
-            2 => Ok(BlockEntityType::Beacon),
-            3 => Ok(BlockEntityType::Skull),
-            4 => Ok(BlockEntityType::Conduit),
-            5 => Ok(BlockEntityType::Banner),
-            6 => Ok(BlockEntityType::StructureBlock),
-            7 => Ok(BlockEntityType::EndGateway),
-            8 => Ok(BlockEntityType::Sign),
-            9 => Ok(BlockEntityType::HangingSign),
-            10 => Ok(BlockEntityType::Bed),
-            11 => Ok(BlockEntityType::Jigsaw),
-            12 => Ok(BlockEntityType::Campfire),
-            13 => Ok(BlockEntityType::Beehive),
-            14 => Ok(BlockEntityType::SculkSensor),
-            15 => Ok(BlockEntityType::CalibratedSculkSensor),
-            16 => Ok(BlockEntityType::SculkCatalyst),
-            17 => Ok(BlockEntityType::SculkShrieker),
-            18 => Ok(BlockEntityType::DecoratedPot),
-            19 => Ok(BlockEntityType::Crafter),
-            _ => Err(CodecError::InvalidEnumValue {
-                enum_name: "BlockEntityType",
-                value,
-                expected: "0..19",
+        match u8::decode(buf)? {
+            0 => Ok(Difficulty::Peaceful),
+            1 => Ok(Difficulty::Easy),
+            2 => Ok(Difficulty::Normal),
+            3 => Ok(Difficulty::Hard),
+            v => Err(CodecError::InvalidEnumValue {
+                enum_name: "Difficulty",
+                value: v as i32,
+                expected: "0..3",
             }),
         }
     }
 }
-pub struct BlockActionData {
-    pub action_id: u8,
-    pub action_param: u8,
-}
+
 #[derive(ClientboundPacket)]
-#[packet(id = 0x07)]
-pub struct BlockAction {
-    pub location: Position,
-    pub action: BlockActionData, // 为了安全，其次是懒，懒得搞enum了
-    pub block_type: i32,
+#[packet(id = 0x0A)]
+pub struct ChangeDifficulty {
+    pub difficulty: Difficulty,
+    pub difficulty_locked: bool,
 }
-impl PacketCodec for BlockActionData {
+
+#[derive(ClientboundPacket)]
+#[packet(id = 0x0B)]
+pub struct ChunkBatchFinished {
+    pub batch_size: i32
+}
+
+#[derive(ClientboundPacket)]
+#[packet(id = 0x0C)]
+pub struct ChunkBatchStart;
+
+pub struct ChunkBiome {
+    pub chunk_x: i32,
+    pub chunk_z: i32,
+    pub data: Vec<u8>,
+}
+
+impl PacketCodec for ChunkBiome {
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
-        self.action_id.encode(buf)?;
-        self.action_param.encode(buf)
+        self.chunk_x.encode(buf)?;
+        self.chunk_z.encode(buf)?;
+        self.data.encode(buf)?;
+        Ok(())
     }
 
     fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
         Ok(Self {
-            action_id: u8::decode(buf)?,
-            action_param: u8::decode(buf)?,
+            chunk_x: i32::decode(buf)?,
+            chunk_z: i32::decode(buf)?,
+            data: Vec::<u8>::decode(buf)?,
         })
     }
 }
+
 #[derive(ClientboundPacket)]
-#[packet(id = 0x08)]
-pub struct BlockUpdate {
-    pub location: Position,
-    pub block_id: i32
+#[packet(id = 0x0D)]
+pub struct ChunkBiomes {
+    pub chunks_biome_data: Vec<ChunkBiome>,
 }
 
+#[derive(ClientboundPacket)]
+#[packet(id = 0x0E)]
+pub struct ClearTitles {
+    pub reset: bool,
+}
+
+pub struct CommandSuggestion {
+    pub match_str: String,
+    pub tooltip: Option<TextComponent>,
+}
+
+impl PacketCodec for CommandSuggestion {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        self.match_str.encode(buf)?;
+        self.tooltip.encode(buf)?;
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        Ok(Self {
+            match_str: String::decode(buf)?,
+            tooltip: Option::<TextComponent>::decode(buf)?,
+        })
+    }
+}
+
+#[derive(ClientboundPacket)]
+#[packet(id = 0x0F)]
+pub struct CommandSuggestionsResponse {
+    pub transaction_id: i32,
+    pub start: i32,
+    pub length: i32,
+    pub matches: Vec<CommandSuggestion>,
+}
+
+
+
+pub struct CommandNode {
+    pub flags: u8,
+    pub children: Vec<i32>,
+    pub redirect_node: Option<i32>,
+    pub name: Option<String>,
+    pub parser: Option<Identifier>,
+    pub properties: Option<Vec<u8>>,
+    pub suggestions_type: Option<Identifier>,
+}
+
+impl PacketCodec for CommandNode {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        self.flags.encode(buf)?;
+        self.children.encode(buf)?;
+
+        if self.flags & 0x08 != 0 {
+            if let Some(v) = self.redirect_node {
+                v.encode(buf)?;
+            }
+        }
+
+        let node_type = self.flags & 0x03;
+
+        if node_type == 1 {
+            if let Some(name) = &self.name {
+                name.encode(buf)?;
+            }
+        }
+
+        if node_type == 2 {
+            if let Some(name) = &self.name {
+                name.encode(buf)?;
+            }
+            if let Some(parser) = &self.parser {
+                parser.encode(buf)?;
+            }
+            if let Some(props) = &self.properties {
+                props.encode(buf)?;
+            }
+        }
+
+        if self.flags & 0x10 != 0 {
+            if let Some(s) = &self.suggestions_type {
+                s.encode(buf)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let flags = u8::decode(buf)?;
+        let children = Vec::<i32>::decode(buf)?;
+
+        let redirect_node = if flags & 0x08 != 0 {
+            Some(i32::decode(buf)?)
+        } else {
+            None
+        };
+
+        let node_type = flags & 0x03;
+
+        let mut name = None;
+        let mut parser = None;
+        let mut properties = None;
+
+        if node_type == 1 {
+            name = Some(String::decode(buf)?);
+        }
+
+        if node_type == 2 {
+            name = Some(String::decode(buf)?);
+            parser = Some(Identifier::decode(buf)?);
+            properties = Some(Vec::<u8>::decode(buf)?);
+        }
+
+        let suggestions_type = if flags & 0x10 != 0 {
+            Some(Identifier::decode(buf)?)
+        } else {
+            None
+        };
+
+        Ok(Self {
+            flags,
+            children,
+            redirect_node,
+            name,
+            parser,
+            properties,
+            suggestions_type,
+        })
+    }
+}
+
+#[derive(ClientboundPacket)]
+#[packet(id = 0x10)]
+pub struct Commands {
+    pub nodes: Vec<CommandNode>,
+    pub root_index: i32,
+}
