@@ -3,6 +3,8 @@ use std::io::{Read, Write};
 use mcproto_derive::{ClientboundPacket, ServerboundPacket};
 use mcproto_utils::{ClientboundPacketTrait, CodecError, Identifier, Int, Long, PacketCodec, ServerboundPacketTrait};
 use uuid::Uuid;
+
+pub mod bossbar;
 #[derive(Debug, Clone, Copy, PartialEq)]
 // 实现基本类型
 // 角度 mc中角度是 真实1度 = 1*256/360 度存储
