@@ -4,6 +4,8 @@ use uuid::Uuid;
 use std::io::{Read, Write};
 use mcproto_derive::{ClientboundPacket, ServerboundPacket};
 
+use crate::packet::TextComponent;
+
 #[derive(ClientboundPacket)]
 #[packet(id = 0x00)]
 pub struct CookieRequest { // 1.20+
@@ -101,7 +103,7 @@ pub struct PluginMessage {
 #[derive(ClientboundPacket)]
 #[packet(id = 0x02)]
 pub struct Disconnect {
-    pub reason: String
+    pub reason: TextComponent
 }
 
 #[derive(ClientboundPacket)]
@@ -185,7 +187,7 @@ pub struct AddResourcePack {
     pub url: String,
     pub hash: String,
     pub forced: bool,
-    pub prompt_message: Option<String>
+    pub prompt_message: Option<TextComponent>
 }
 
 #[derive(ClientboundPacket)]

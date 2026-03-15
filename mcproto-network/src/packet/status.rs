@@ -10,6 +10,8 @@ use rand::RngExt;
 use mcproto_utils::{ServerboundPacketTrait, ClientboundPacketTrait};
 use mcproto_derive::{ClientboundPacket, ServerboundPacket};
 
+use crate::packet::TextComponent;
+
 // 按照正常登录流程排序
 // todo: 老SLP（1.6前）
 #[derive(ServerboundPacket)]
@@ -19,7 +21,7 @@ pub struct StatusRequest; // 空的
 #[derive(ClientboundPacket)]
 #[packet(id = 0x00)]
 pub struct StatusResponse {
-    pub json_response: String
+    pub json_response: TextComponent
 }
 #[derive(ServerboundPacket)]
 #[packet(id = 0x01)]

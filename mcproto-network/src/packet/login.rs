@@ -8,9 +8,11 @@
  */
 use std::io::{Read, Write};
 use rand::Rng;
-use mcproto_utils::{ClientboundPacketTrait, CodecError, Identifier, PacketCodec, ServerboundPacketTrait};
+use mcproto_utils::{ClientboundPacketTrait, CodecError, Identifier, PacketCodec, PrefixedString, ServerboundPacketTrait};
 use mcproto_derive::{ClientboundPacket, ServerboundPacket};
 use uuid::Uuid;
+
+use crate::packet::TextComponent;
 
 #[derive(ServerboundPacket)]
 #[packet(id = 0x00)]
@@ -21,7 +23,7 @@ pub struct LoginStart {
 #[derive(ClientboundPacket)]
 #[packet(id = 0x00)]
 pub struct Disconnect {
-    pub reason_json : String,
+    pub reason_json: TextComponent,
 }
 #[derive(ClientboundPacket)]
 #[packet(id = 0x01)]
@@ -57,7 +59,7 @@ impl EncryptionResponse {
 pub struct Property {
     pub name: String,
     pub value: String,
-    pub signature: Option<String>,
+    pub signature: PrefixedString,
 }
 impl PacketCodec for Property { // Array（无长度）
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
@@ -71,7 +73,7 @@ impl PacketCodec for Property { // Array（无长度）
         Ok(Property {
             name: String::decode(buf)?,
             value: String::decode(buf)?,
-            signature: Option::<String>::decode(buf)?, // Prefixed
+            signature: PrefixedString::decode(buf)?, // Prefixed
         })
     }
 }
