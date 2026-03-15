@@ -90,33 +90,12 @@ pub mod skin_parts {
         HAT;
 }
 
-#[derive(ServerboundPacket)]
-#[packet(id = 0x00)]
-pub struct ClientInformation {
-    // wiki: Sent when the player connects, or when settings are changed. 
-    pub locale: String, // s16
-    pub view_distance: i8, //byte
-    pub chat_mode: ChatMode,
-    pub chat_colors: bool,
-    pub displayed_skin_parts: u8, // Unsigned byte
-    pub main_hand: MainHand,
-    pub enable_text_filtering: bool,
-    pub allow_server_listings: bool,
-    pub particle_status: ParticleStatus,
-}
 
 #[derive(ClientboundPacket)]
 #[packet(id = 0x01)]
 pub struct PluginMessage {
     pub channel: Identifier,
     pub data: Vec<u8> // 原始数据
-}
-#[derive(ServerboundPacket)]
-#[packet(id = 0x01)]
-pub struct CookieResponse {
-    pub key: Identifier,
-    pub payload: Option<Vec<u8>> // Prefixed Optional Prefixed Array (5120) of Byte 	
-
 }
 
 #[derive(ClientboundPacket)]
@@ -518,19 +497,15 @@ pub struct ServerLinkList(pub Vec<ServerLink>);
 impl PacketCodec for ServerLinkList {
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
         (self.0.len() as i32).encode(buf)?;
-
         for link in &self.0 {
             link.encode(buf)?;
         }
-
         Ok(())
     }
 
     fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
         let len = i32::decode(buf)? as usize;
-
         let mut links = Vec::with_capacity(len);
-
         for _ in 0..len {
             links.push(ServerLink::decode(buf)?);
         }
@@ -547,3 +522,98 @@ pub struct ClearDialog;
 pub struct ShowDialog {
     pub dialog: Vec<u8> // nbt
 }
+
+// serverbound
+#[derive(ServerboundPacket)]
+#[packet(id = 0x00)]
+pub struct ClientInformation {
+    // wiki: Sent when the player connects, or when settings are changed. 
+    pub locale: String, // s16
+    pub view_distance: i8, //byte
+    pub chat_mode: ChatMode,
+    pub chat_colors: bool,
+    pub displayed_skin_parts: u8, // Unsigned byte
+    pub main_hand: MainHand,
+    pub enable_text_filtering: bool,
+    pub allow_server_listings: bool,
+    pub particle_status: ParticleStatus,
+}
+#[derive(ServerboundPacket)]
+#[packet(id = 0x01)]
+pub struct CookieResponse {
+    pub key: Identifier,
+    pub payload: Option<Vec<u8>> // Prefixed Optional Prefixed Array (5120) of Byte 	
+
+}
+#[derive(ServerboundPacket)]
+#[packet(id = 0x02)]
+pub struct ServerboundPluginMessage {
+    pub channel: Identifier,
+    pub data: Vec<u8> // varies
+}
+#[derive(ServerboundPacket)]
+#[packet(id = 0x03)]
+pub struct AcknowledgeFinishConfiguration;
+
+#[derive(ServerboundPacket)]
+#[packet(id = 0x04)]
+pub struct ServerboundKeepAlive {
+    pub keep_alive_id: Long
+}
+
+#[derive(ServerboundPacket)]
+#[packet(id = 0x05)]
+pub struct Pong {
+    pub id: Int
+}
+
+#[derive(ServerboundPacket)]
+#[packet(id = 0x06)]
+pub struct ResourcePackResponse {
+    pub uuid: Uuid,
+    pub result: ResourcePackResult,
+}
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ResourcePackResult {
+    SuccessfullyLoaded = 0,
+    Declined = 1,
+    FailedDownload = 2,
+    Accepted = 3,
+}
+impl PacketCodec for ResourcePackResult {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        (*self as i32).encode(buf)
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let value = i32::decode(buf)?;
+
+        match value {
+            0 => Ok(ResourcePackResult::SuccessfullyLoaded),
+            1 => Ok(ResourcePackResult::Declined),
+            2 => Ok(ResourcePackResult::FailedDownload),
+            3 => Ok(ResourcePackResult::Accepted),
+            _ => Err(CodecError::InvalidEnumValue {
+                enum_name: "ResourcePackResult",
+                value,
+                expected: "0, 1, 2 or 3",
+            }),
+        }
+    }
+}
+#[derive(ServerboundPacket)]
+#[packet(id = 0x07)]
+pub struct ServerboundKnownPacks {
+    pub known_packs: KnownPackList
+}
+#[derive(ServerboundPacket)]
+#[packet(id = 0x08)]
+pub struct CustomClickAction {
+    pub id: Identifier,
+    pub payload: Vec<u8>
+}
+#[derive(ServerboundPacket)]
+#[packet(id = 0x09)]
+pub struct AcceptCodeOfConduct;
+
+

@@ -123,3 +123,18 @@ pub struct CookieResponse {
     pub key: Identifier,
     pub value: Option<Vec<u8>>
 }
+#[derive(ClientboundPacket)]
+#[packet(id = 0x04)]
+pub struct LoginPluginRequest {
+    pub message_id: i32,
+    pub channel: Identifier,
+    pub data: Vec<u8> // nbt 
+}
+#[derive(ServerboundPacket)]
+#[packet(id = 0x02)]
+pub struct LoginPluginResponse {
+    pub message_id: i32,
+    pub successful: bool,
+    pub data: Option<Vec<u8>> // nbt
+}
+
