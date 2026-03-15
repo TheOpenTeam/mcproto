@@ -39,7 +39,7 @@ pub async fn xbox_live_auth(client: &Client, data: TokenData) -> Result<XboxAuth
         "Properties": {
             "AuthMethod": "RPS",
             "SiteName": "user.auth.xboxlive.com",
-            "RpsTicket": format!("d=<{}>", data.access_token),
+            "RpsTicket": format!("d={}", data.access_token),
         },
         "RelyingParty": "http://auth.xboxlive.com",
         "TokenType": "JWT"
@@ -97,6 +97,7 @@ pub async fn get_mc_access_token(client: &Client, data: XboxAuthResponse) -> Res
         {
             "identityToken": format!("XBL3.0 x={};{}", uhs, &data.token)
         }
+
     );
     let response = 
     client
