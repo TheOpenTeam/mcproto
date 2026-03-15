@@ -12,6 +12,7 @@ use uuid::Uuid;
 
 pub mod utils;
 use crate::utils::{varint, varlong};
+pub type Identifier = String;
 pub trait ServerboundPacketTrait {
     fn packet_id(&self) -> i32;
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError>;
@@ -52,7 +53,8 @@ impl PacketCodec for i32 {
 }
 impl PacketCodec for i64 {
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
-        Ok(varlong::encode(*self, buf)?)
+        varlong::encode(*self, buf);
+        Ok(())
     }
     fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
         Ok(varlong::decode(buf)?)
@@ -201,6 +203,34 @@ impl PacketCodec for Uuid {
         Uuid::from_slice(&bytes).map_err(|_| CodecError::DecodeError)
     }
 }
+// prefixed optional uuid
+impl PacketCodec for Option<Uuid> {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        match self {
+            Some(uuid) => {
+                true.encode(buf)?;
+                buf.write_all(uuid.as_bytes())?;
+            }
+            None => {
+                false.encode(buf)?;
+            }
+        }
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let has_uuid = bool::decode(buf)?;
+
+        if has_uuid {
+            let mut bytes = [0u8; 16];
+            buf.read_exact(&mut bytes)?;
+            Ok(Some(Uuid::from_bytes(bytes)))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
 // prefixed array
 impl PacketCodec for Vec<u8> {
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
@@ -220,7 +250,7 @@ impl PacketCodec for Vec<u8> {
 impl PacketCodec for Option<String> {
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
         if let Some(s) = self {
-            true.encode(buf);
+            true.encode(buf)?;
             s.encode(buf)?;
             Ok(())
         } else {
@@ -257,5 +287,56 @@ impl PacketCodec for Option<Vec<u8>> {
         } else {
             Ok(None)                     // 没内容直接返回 None
         }
+    }
+}
+
+pub struct Int(pub i32); // 大端序 Int
+impl PacketCodec for Int {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        buf.write_all(&self.0.to_be_bytes())?;
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let mut bytes = [0u8; 4];
+        buf.read_exact(&mut bytes)?;
+        Ok(Int(i32::from_be_bytes(bytes)))
+    }
+}
+pub struct Long(pub i64); // 大端序 Long
+impl PacketCodec for Long {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        buf.write_all(&self.0.to_be_bytes())?;
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let mut bytes = [0u8; 8];
+        buf.read_exact(&mut bytes)?;
+        Ok(Long(i64::from_be_bytes(bytes)))
+    }
+}
+// Prefixed array of varint
+impl PacketCodec for Vec<i32> {
+    fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
+        (self.len() as i32).encode(buf)?; // VarInt length
+
+        for v in self {
+            v.encode(buf)?;
+        }
+
+        Ok(())
+    }
+
+    fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let len = i32::decode(buf)? as usize;
+
+        let mut values = Vec::with_capacity(len);
+
+        for _ in 0..len {
+            values.push(i32::decode(buf)?);
+        }
+
+        Ok(values)
     }
 }

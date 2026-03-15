@@ -6,7 +6,6 @@
  *  * Copyright (c) 2026 The Open Team. All rights reserved.
  *
  */
-use thiserror::Error;
 use uuid::Uuid;
 use log::error;
 use crate::NetworkError;

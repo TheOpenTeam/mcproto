@@ -28,7 +28,7 @@ impl PacketCodec for NextState {
             1 => Ok(NextState::Status),
             2 => Ok(NextState::Login),
             3 => Ok(NextState::Transfer),
-            _ => Err(CodecError::InvalidEnumValue {enum_name: "NextState", value, expected: "1 or 2"}),
+            _ => Err(CodecError::InvalidEnumValue {enum_name: "NextState", value, expected: "1, 2 or 3"}),
         }
     }
 }

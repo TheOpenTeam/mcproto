@@ -8,7 +8,7 @@
  */
 use std::io::{Read, Write};
 use rand::Rng;
-use mcproto_utils::{ServerboundPacketTrait, ClientboundPacketTrait, PacketCodec, CodecError};
+use mcproto_utils::{ClientboundPacketTrait, CodecError, Identifier, PacketCodec, ServerboundPacketTrait};
 use mcproto_derive::{ClientboundPacket, ServerboundPacket};
 use uuid::Uuid;
 
@@ -115,11 +115,11 @@ pub struct SetCompression {
 #[derive(ClientboundPacket)]
 #[packet(id = 0x05)]
 pub struct CookieRequest {
-    pub key: String
+    pub key: Identifier
 }
 #[derive(ServerboundPacket)]
 #[packet(id = 0x05)]
 pub struct CookieResponse {
-    pub key: String,
+    pub key: Identifier,
     pub value: Option<Vec<u8>>
 }
