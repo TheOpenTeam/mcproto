@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::io::{Cursor, Read};
+use std::ops::{Index, IndexMut};
 
 use crate::NbtError;
 
@@ -23,7 +24,19 @@ pub enum NbtValue {
 pub struct Nbt {
     pub root: HashMap<String, NbtValue>,
 }
+impl Index<&str> for Nbt {
+    type Output = NbtValue;
 
+    fn index(&self, path: &str) -> &Self::Output {
+        self.try_get(path).expect("path not found")
+    }
+}
+
+impl IndexMut<&str> for Nbt {
+    fn index_mut(&mut self, path: &str) -> &mut Self::Output {
+        self.try_get_mut(path).expect("path not found")
+    }
+}
 impl Nbt {
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, NbtError> {
         let mut cursor = Cursor::new(bytes);
@@ -45,6 +58,39 @@ impl Nbt {
 
         Ok(buf)
     }
+    // 输入路径
+    pub fn try_get<T: AsRef<str>>(&self, path: T) -> Option<&NbtValue> {
+        let mut parts = path.as_ref().split('.');
+        let current = parts.next()?;
+        let mut value = self.root.get(current)?;
+
+        for key in parts {
+            match value {
+                NbtValue::Compound(map) => {
+                    value = map.get(key)?;
+                }
+                _ => return None,
+            }
+        }
+        Some(value)
+    }
+
+    pub fn try_get_mut<T: AsRef<str>>(&mut self, path: T) -> Option<&mut NbtValue> {
+        let mut parts = path.as_ref().split('.');
+        let current = parts.next()?;
+        let mut value = self.root.get_mut(current)?;
+
+        for key in parts {
+            match value {
+                NbtValue::Compound(map) => {
+                    value = map.get_mut(key)?;
+                }
+                _ => return None,
+            }
+        }
+        Some(value)
+    }
+
 }
 
 fn read_u8(r: &mut impl Read) -> Result<u8, NbtError> {
