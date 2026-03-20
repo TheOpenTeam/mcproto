@@ -4,7 +4,8 @@
 mcproto-utils/Cargo.lock
 ./Cargo.lock
 *.lock
-
+*.nbt
+*.dat
 # IDE
 .idea/
 .vscode/
