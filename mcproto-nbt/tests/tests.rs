@@ -38,7 +38,7 @@ fn test_nbt_all_types_roundtrip() {
     inner.insert("inner_key".into(), NbtValue::String("value".into()));
     root.insert("compound".into(), NbtValue::Compound(inner));
 
-    let nbt = Nbt { root };
+    let nbt = Nbt { root , compressed: false};
 
     let bytes = nbt.to_bytes().expect("to_bytes failed");
 

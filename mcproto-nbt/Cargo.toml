@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 thiserror = "2.0.18"
 log = "0.4.29"
+flate2 = "1.1.9"

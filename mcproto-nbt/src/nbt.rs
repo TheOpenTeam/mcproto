@@ -1,7 +1,12 @@
 use std::collections::HashMap;
-use std::io::{Cursor, Read};
+use std::io::{Cursor, Read, Write};
+use std::ops::{Index, IndexMut};
 
 use crate::NbtError;
+
+use flate2::read::GzDecoder;
+use flate2::write::GzEncoder;
+use flate2::Compression;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum NbtValue {
@@ -22,29 +27,62 @@ pub enum NbtValue {
 #[derive(Debug, Clone)]
 pub struct Nbt {
     pub root: HashMap<String, NbtValue>,
+    pub compressed: bool,
 }
+
+impl Index<&str> for Nbt {
+    type Output = NbtValue;
+
+    fn index(&self, path: &str) -> &Self::Output {
+        self.try_get(path).expect("path not found")
+    }
+}
+
+impl IndexMut<&str> for Nbt {
+    fn index_mut(&mut self, path: &str) -> &mut Self::Output {
+        self.try_get_mut(path).expect("path not found")
+    }
+}
+
 impl Nbt {
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, NbtError> {
-        let mut cursor = Cursor::new(bytes);
+        let (data, compressed) = if is_gzip(bytes) {
+            let mut decoder = GzDecoder::new(bytes);
+            let mut buf = Vec::new();
+            decoder.read_to_end(&mut buf).map_err(|e| NbtError::Io(e.to_string()))?;
+            (buf, true)
+        } else {
+            (bytes.to_vec(), false)
+        };
+
+        let mut cursor = Cursor::new(&data);
         let tag_id = read_u8(&mut cursor)?;
         if tag_id != 10 {
             return Err(NbtError::InvalidRoot);
         }
+
         let _name = read_string(&mut cursor)?;
         let root = read_compound(&mut cursor)?;
-        Ok(Self { root })
+
+        Ok(Self { root, compressed })
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, NbtError> {
         let mut buf = Vec::new();
+
         write_u8(&mut buf, 10)?;
         write_string(&mut buf, "")?;
-
         write_compound(&mut buf, &self.root)?;
 
-        Ok(buf)
+        if self.compressed {
+            let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+            encoder.write_all(&buf).map_err(|e| NbtError::Io(e.to_string()))?;
+            encoder.finish().map_err(|e| NbtError::Io(e.to_string()))
+        } else {
+            Ok(buf)
+        }
     }
-    // 输入路径
+
     pub fn try_get<T: AsRef<str>>(&self, path: T) -> Option<&NbtValue> {
         let mut parts = path.as_ref().split('.');
         let current = parts.next()?;
@@ -76,8 +114,13 @@ impl Nbt {
         }
         Some(value)
     }
-
 }
+
+// gzip检查
+pub fn is_gzip(bytes: &[u8]) -> bool {
+    bytes.len() >= 2 && bytes[0] == 0x1F && bytes[1] == 0x8B
+}
+
 
 fn read_u8(r: &mut impl Read) -> Result<u8, NbtError> {
     let mut buf = [0u8; 1];
@@ -235,70 +278,34 @@ fn write_string(w: &mut Vec<u8>, s: &str) -> Result<(), NbtError> {
 
 fn write_value(w: &mut Vec<u8>, v: &NbtValue) -> Result<u8, NbtError> {
     match v {
-        NbtValue::Byte(x) => {
-            write_i8(w, *x)?;
-            Ok(1)
-        }
-        NbtValue::Short(x) => {
-            write_i16(w, *x)?;
-            Ok(2)
-        }
-        NbtValue::Int(x) => {
-            write_i32(w, *x)?;
-            Ok(3)
-        }
-        NbtValue::Long(x) => {
-            write_i64(w, *x)?;
-            Ok(4)
-        }
-        NbtValue::Float(x) => {
-            write_f32(w, *x)?;
-            Ok(5)
-        }
-        NbtValue::Double(x) => {
-            write_f64(w, *x)?;
-            Ok(6)
-        }
+        NbtValue::Byte(x) => { write_i8(w, *x)?; Ok(1) }
+        NbtValue::Short(x) => { write_i16(w, *x)?; Ok(2) }
+        NbtValue::Int(x) => { write_i32(w, *x)?; Ok(3) }
+        NbtValue::Long(x) => { write_i64(w, *x)?; Ok(4) }
+        NbtValue::Float(x) => { write_f32(w, *x)?; Ok(5) }
+        NbtValue::Double(x) => { write_f64(w, *x)?; Ok(6) }
         NbtValue::ByteArray(arr) => {
             write_i32(w, arr.len() as i32)?;
-            for v in arr {
-                write_i8(w, *v)?;
-            }
+            for v in arr { write_i8(w, *v)?; }
             Ok(7)
         }
-        NbtValue::String(s) => {
-            write_string(w, s)?;
-            Ok(8)
-        }
+        NbtValue::String(s) => { write_string(w, s)?; Ok(8) }
         NbtValue::List(list) => {
-            let tag = if let Some(first) = list.first() {
-                write_value(&mut Vec::new(), first)?
-            } else {
-                1
-            };
+            let tag = list.first().map(|v| write_value(&mut Vec::new(), v).unwrap()).unwrap_or(1);
             write_u8(w, tag)?;
             write_i32(w, list.len() as i32)?;
-            for item in list {
-                write_value(w, item)?;
-            }
+            for item in list { write_value(w, item)?; }
             Ok(9)
         }
-        NbtValue::Compound(map) => {
-            write_compound(w, map)?;
-            Ok(10)
-        }
+        NbtValue::Compound(map) => { write_compound(w, map)?; Ok(10) }
         NbtValue::IntArray(arr) => {
             write_i32(w, arr.len() as i32)?;
-            for v in arr {
-                write_i32(w, *v)?;
-            }
+            for v in arr { write_i32(w, *v)?; }
             Ok(11)
         }
         NbtValue::LongArray(arr) => {
             write_i32(w, arr.len() as i32)?;
-            for v in arr {
-                write_i64(w, *v)?;
-            }
+            for v in arr { write_i64(w, *v)?; }
             Ok(12)
         }
     }
