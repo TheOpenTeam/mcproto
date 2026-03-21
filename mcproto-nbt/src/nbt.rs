@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::io::{Cursor, Read};
-use std::ops::{Index, IndexMut};
 
 use crate::NbtError;
 
@@ -23,19 +22,6 @@ pub enum NbtValue {
 #[derive(Debug, Clone)]
 pub struct Nbt {
     pub root: HashMap<String, NbtValue>,
-}
-impl Index<&str> for Nbt {
-    type Output = NbtValue;
-
-    fn index(&self, path: &str) -> &Self::Output {
-        self.try_get(path).expect("path not found")
-    }
-}
-
-impl IndexMut<&str> for Nbt {
-    fn index_mut(&mut self, path: &str) -> &mut Self::Output {
-        self.try_get_mut(path).expect("path not found")
-    }
 }
 impl Nbt {
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, NbtError> {
