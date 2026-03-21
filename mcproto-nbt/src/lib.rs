@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 pub mod nbt;
-
+pub mod templates;
 #[derive(Debug, Error)]
 pub enum NbtError {
     #[error("Unknown tag id {0}")]
@@ -15,4 +15,7 @@ pub enum NbtError {
 
     #[error("Invalid UTF-8 string: {0}")]
     Utf8(String),
+
+    #[error("Unknown compound {0}")]
+    UnknownCompound(String)
 }
