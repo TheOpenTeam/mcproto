@@ -1,7 +1,7 @@
 use std::io::{Read, Write};
 
 use mcproto_derive::ClientboundPacket;
-use mcproto_utils::{CodecError, PacketCodec, ClientboundPacketTrait, ServerboundPacketTrait};
+use mcproto_utils::{ClientboundPacketTrait, CodecError, PacketCodec, ServerboundPacketTrait};
 
 use super::Position;
 

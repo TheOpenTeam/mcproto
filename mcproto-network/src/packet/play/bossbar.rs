@@ -1,6 +1,6 @@
+use mcproto_utils::{CodecError, PacketCodec};
 use std::io::{Read, Write};
 use uuid::Uuid;
-use mcproto_utils::{PacketCodec, CodecError};
 
 use crate::packet::TextComponent;
 
@@ -104,7 +104,13 @@ impl PacketCodec for BossBar {
         self.uuid.encode(buf)?;
 
         match &self.action {
-            BossBarAction::Add { title, health, color, division, flags } => {
+            BossBarAction::Add {
+                title,
+                health,
+                color,
+                division,
+                flags,
+            } => {
                 0i32.encode(buf)?;
                 title.encode(buf)?;
                 health.encode(buf)?;

@@ -1,14 +1,16 @@
 use std::io::{Read, Write};
 
 use mcproto_derive::{ClientboundPacket, ServerboundPacket};
-use mcproto_utils::{ClientboundPacketTrait, CodecError, Identifier, Int, Long, PacketCodec, ServerboundPacketTrait};
+use mcproto_utils::{
+    ClientboundPacketTrait, CodecError, Identifier, Int, Long, PacketCodec, ServerboundPacketTrait,
+};
 use uuid::Uuid;
 
 use crate::packet::TextComponent;
 
+pub mod block;
 pub mod bossbar;
 pub mod container;
-pub mod block;
 #[derive(Debug, Clone, Copy, PartialEq)]
 // 实现基本类型
 // 角度 mc中角度是 真实1度 = 1*256/360 度存储
@@ -65,27 +67,23 @@ pub struct Position {
 }
 impl PacketCodec for Position {
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
-        let packed =
-            ((self.x as i64 & 0x3FFFFFF) << 38) |
-            ((self.z as i64 & 0x3FFFFFF) << 12) |
-            (self.y as i64 & 0xFFF);
+        let packed = ((self.x as i64 & 0x3FFFFFF) << 38)
+            | ((self.z as i64 & 0x3FFFFFF) << 12)
+            | (self.y as i64 & 0xFFF);
 
-        packed.encode(buf)
+        Long(packed).encode(buf)
     }
 
     fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
-        let val = i64::decode(buf)?;
+        let val = Long::decode(buf)?.0;
 
         let x = (val >> 38) as i32;
-        let y = (val & 0xFFF) as i32;
-        let z = ((val >> 12) & 0x3FFFFFF) as i32;
+        let y = ((val << 52) >> 52) as i32;
+        let z = ((val << 26) >> 38) as i32;
 
         Ok(Self { x, y, z })
     }
 }
-
-
-
 
 // clientbound
 
@@ -231,9 +229,8 @@ impl PacketCodec for StatisticCategory {
 #[derive(ClientboundPacket)]
 #[packet(id = 0x03)]
 pub struct AwardStatistics {
-    pub statistics: Statistics
+    pub statistics: Statistics,
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Difficulty {
@@ -273,7 +270,7 @@ pub struct ChangeDifficulty {
 #[derive(ClientboundPacket)]
 #[packet(id = 0x0B)]
 pub struct ChunkBatchFinished {
-    pub batch_size: i32
+    pub batch_size: i32,
 }
 
 #[derive(ClientboundPacket)]
@@ -343,8 +340,6 @@ pub struct CommandSuggestionsResponse {
     pub length: i32,
     pub matches: Vec<CommandSuggestion>,
 }
-
-
 
 pub struct CommandNode {
     pub flags: u8,
