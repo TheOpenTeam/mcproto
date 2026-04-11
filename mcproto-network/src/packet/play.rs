@@ -42,19 +42,84 @@ pub struct LpVec3 {
     pub y: f64,
     pub z: f64,
 }
+
+const LPVEC3_MAX_QUANTIZED_VALUE: f64 = 32766.0;
+const LPVEC3_ZERO_THRESHOLD: f64 = 3.051944088384301e-5;
+
+#[inline]
+fn pack_lpvec3_component(value: f64) -> u64 {
+    ((value * 0.5 + 0.5) * LPVEC3_MAX_QUANTIZED_VALUE).round() as u64
+}
+
+#[inline]
+fn unpack_lpvec3_component(value: u64) -> f64 {
+    value.min(LPVEC3_MAX_QUANTIZED_VALUE as u64) as f64 * 2.0 / LPVEC3_MAX_QUANTIZED_VALUE - 1.0
+}
+
 impl PacketCodec for LpVec3 {
     fn encode(&self, buf: &mut impl Write) -> Result<(), CodecError> {
-        self.x.encode(buf)?;
-        self.y.encode(buf)?;
-        self.z.encode(buf)?;
+        let max_coordinate = self.x.abs().max(self.y.abs()).max(self.z.abs());
+
+        if max_coordinate < LPVEC3_ZERO_THRESHOLD {
+            0u8.encode(buf)?;
+            return Ok(());
+        }
+
+        let max_coordinate_i = max_coordinate as i64;
+        let scale_factor = if max_coordinate > max_coordinate_i as f64 {
+            (max_coordinate_i + 1) as u64
+        } else {
+            max_coordinate_i as u64
+        };
+
+        let need_continuation = (scale_factor & 3) != scale_factor;
+        let packed_scale = if need_continuation {
+            (scale_factor & 3) | 4
+        } else {
+            scale_factor
+        };
+
+        let packed_x = pack_lpvec3_component(self.x / scale_factor as f64) << 3;
+        let packed_y = pack_lpvec3_component(self.y / scale_factor as f64) << 18;
+        let packed_z = pack_lpvec3_component(self.z / scale_factor as f64) << 33;
+        let packed = packed_z | packed_y | packed_x | packed_scale;
+
+        (packed as u8).encode(buf)?;
+        ((packed >> 8) as u8).encode(buf)?;
+        ((packed >> 16) as u32).encode(buf)?;
+
+        if need_continuation {
+            ((scale_factor >> 2) as i32).encode(buf)?;
+        }
+
         Ok(())
     }
 
     fn decode(buf: &mut impl Read) -> Result<Self, CodecError> {
+        let byte1 = u8::decode(buf)?;
+        if byte1 == 0 {
+            return Ok(Self {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            });
+        }
+
+        let byte2 = u8::decode(buf)?;
+        let bytes3_to_6 = u32::decode(buf)?;
+        let packed = ((bytes3_to_6 as u64) << 16) | ((byte2 as u64) << 8) | byte1 as u64;
+
+        let mut scale_factor = packed & 3;
+        if (packed & 4) == 4 {
+            scale_factor |= (i32::decode(buf)? as u32 as u64) << 2;
+        }
+
+        let scale_factor = scale_factor as f64;
+
         Ok(Self {
-            x: f64::decode(buf)?,
-            y: f64::decode(buf)?,
-            z: f64::decode(buf)?,
+            x: unpack_lpvec3_component((packed >> 3) & 0x7FFF) * scale_factor,
+            y: unpack_lpvec3_component((packed >> 18) & 0x7FFF) * scale_factor,
+            z: unpack_lpvec3_component((packed >> 33) & 0x7FFF) * scale_factor,
         })
     }
 }
